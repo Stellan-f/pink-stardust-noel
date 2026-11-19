@@ -4849,8 +4849,8 @@ function mountOpeningArt(canvas) {
 
 
 function openExhibition(cover, onEntered) {
-  // 配置中心：初始相机距离和可视高度决定构图，动画时长为毫秒。
-  const config = { frameHeight:7.45, scatterHeight:8.23, distance:11, turnSpeed:.105,
+  // 配置中心：相机距离和可视范围决定构图，动画时长为毫秒。
+  const config = { frameHeight:9.85, treeFrameWidth:5.64, scatterHeight:8.23, distance:11, turnSpeed:.105,
     holdTime:350, dragDistance:6, entryDuration:4050, darkPause:80, spiralLightDuration:3240, heartOverlap:265, heartLightDuration:790,
     duration:{tree:1540,scatter:1380,text:1610,name:1700} };
   const spiralStarts=config.entryDuration+config.darkPause;
@@ -4875,9 +4875,13 @@ function openExhibition(cover, onEntered) {
   renderer.toneMappingExposure = .95;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(38,1,.12,90);
-  camera.position.set(0,2.07,config.distance);
+  // 相机向下看见螺旋的前后层次，并让竖直树轴保持在画面中央。
+  const homeView = {distance:11.18, elevation:27, azimuth:-63, targetY:.08};
+  const {degToRad}=THREE.MathUtils;
+  camera.position.setFromSphericalCoords(homeView.distance,degToRad(90-homeView.elevation),degToRad(homeView.azimuth));
+  camera.position.y+=homeView.targetY;
   const controls = new THREE.OrbitControls(camera,canvas);
-  controls.target.set(0,.07,0);
+  controls.target.set(0,homeView.targetY,0);
   controls.enableDamping = true;
   controls.dampingFactor = .13;
   controls.rotateSpeed = .63;
@@ -4904,7 +4908,7 @@ function openExhibition(cover, onEntered) {
     if (state==='text') return Math.max(7.71,9.4/((aspect<.9?.90:.596)*aspect));
     if (state==='name') return Math.max(7.25,9.4/((aspect<.9?.90:.64)*aspect));
     if (state==='scatter') return config.scatterHeight;
-    return Math.max(config.frameHeight,4.72/aspect);
+    return Math.max(config.frameHeight,config.treeFrameWidth/aspect);
   };
   const scatterScale=()=>[config.scatterHeight*aspect/17.4,config.scatterHeight/9.3];
   const lightAnchor=new THREE.Vector3();
@@ -4972,7 +4976,12 @@ function openExhibition(cover, onEntered) {
   function advance() { choose(states[(states.indexOf(state)+1)%states.length]); }
   cycle.addEventListener('click',advance);
   document.querySelector('#home').addEventListener('click',()=>{
+    // 清掉拖动余量，再恢复保存的取景，避免复位后继续偏转。
+    const damping=controls.enableDamping;
+    controls.enableDamping=false;
+    controls.update();
     controls.reset();
+    controls.enableDamping=damping;
     if (state!=='tree') {
       if (animation) animation.goal.copy(camera.quaternion);
       else sculpture.root.quaternion.copy(camera.quaternion);
