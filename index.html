@@ -4303,7 +4303,7 @@ function makeSculpture(scene,ornaments,entryIgnition) {
           vec3 litPetal = petalTint*(.14+.89*vGlint.w) + outgoingLight*.18;
           outgoingLight = mix(outgoingLight,litPetal,treeAmount);
           vec3 softRose = mix(vec3(1.,.49,.64),vec3(1.,.70,.79),.28+.31*pulse);
-          float softFill = .184 + .057*smoothstep(.02,1.0,vGlint.y) + .022*pulse;
+          float softFill = .306 + .057*smoothstep(.02,1.0,vGlint.y) + .022*pulse;
           outgoingLight = mix(outgoingLight,softRose*softFill + outgoingLight*.095,wishAmount);
           outgoingLight = outgoingLight*(.065+.935*vIgnition.x) + vec3(1.,.48,.64)*(.11*vIgnition.y);
           #include <opaque_fragment>`);
