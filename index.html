@@ -4850,12 +4850,14 @@ function mountOpeningArt(canvas) {
 
 function openExhibition(cover, onEntered) {
   // 配置中心：相机距离和可视范围决定构图，动画时长为毫秒。
-  const config = { frameHeight:9.85, treeFrameWidth:5.64, scatterHeight:8.23, distance:11, turnSpeed:.105,
+  // 粒子从底部沿 x=cos(角度)、z=sin(角度) 盘升，向负 Y 转动与这个方向一致。
+  const config = { frameHeight:9.85, treeFrameWidth:5.64, scatterHeight:8.23, distance:11, turnSpeed:-.105,
     holdTime:350, dragDistance:6, entryDuration:4050, darkPause:80, spiralLightDuration:3240, heartOverlap:265, heartLightDuration:790,
     duration:{tree:1540,scatter:1380,text:1610,name:1700} };
   const spiralStarts=config.entryDuration+config.darkPause;
   const heartStarts=spiralStarts+config.spiralLightDuration-config.heartOverlap;
   const openingDuration=heartStarts+config.heartLightDuration;
+  const heartTurnAngle=.5*config.turnSpeed*(config.heartLightDuration/1000);
   const firstLight=-.075;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const canvas = document.querySelector('#scene');
@@ -5104,7 +5106,7 @@ function openExhibition(cover, onEntered) {
     main.style.setProperty('--entry-backlight',.30+.58*spiral+.12*heartBloom);
     main.style.setProperty('--entry-ui',smoothstep(heart,.52,1));
     // 末段轻轻带起树身的惯性，接上常态转速。
-    sculpture.root.rotation.y=.04*heart*heart;
+    sculpture.root.rotation.y=heartTurnAngle*heart*heart;
     if(heart>=.86 && openingBurstStart===null) openingBurstStart=now;
     return 1;
   }
