@@ -41,7 +41,7 @@
     main{height:100vh;height:100svh;min-height:310px;position:relative;isolation:isolate;overflow:hidden;
       background:radial-gradient(ellipse 37% 42% at 50% 88%,#12070e 1%,#070305 64%,#020102 100%)}
     main[data-state=scatter]{background:radial-gradient(ellipse at 50% 51%,#11060d,#080408 54%,#030203)}
-    main[data-entry] header,main[data-entry] footer{visibility:hidden}
+    main[data-entry] header,main[data-entry] footer{opacity:var(--entry-ui,0)}
     header{position:absolute;z-index:2;top:clamp(16px,4.2vh,60px);inset-inline:0;text-align:center;pointer-events:none}
     h1{font:400 clamp(23px,min(2.47vw,4.80vh),57px)/1.15 Georgia,"Times New Roman",serif;letter-spacing:.102em;text-indent:.102em;text-transform:uppercase;color:#e4c7d2;text-shadow:0 0 8px #e893af2b}
     button{cursor:pointer;color:inherit;touch-action:manipulation;font:inherit}
@@ -76,6 +76,7 @@
     main[data-state=tree] #scene{opacity:.90}
     main[data-state=scatter] #scene{opacity:.85}
     main[data-entry] #scene{opacity:var(--entry-glow,0);filter:blur(var(--entry-blur,5px))}
+    main[data-entry=lighting] #scene{filter:none}
     #scene:active{cursor:grabbing}
     #failure{position:absolute;inset:45% 12% auto;text-align:center;font:14px/1.65 system-ui,sans-serif}
     footer{position:absolute;z-index:3;bottom:max(12px,env(safe-area-inset-bottom));left:0;right:0;display:flex;gap:14px;align-items:center;justify-content:center;pointer-events:none;color:#ac8a99;font:11px/1.45 "Microsoft YaHei UI","PingFang SC",system-ui,sans-serif}
@@ -4069,8 +4070,9 @@ function makeOrnaments(treeOnly = false) {
       - 2 * Math.cos(3 * angle) - Math.cos(4 * angle);
     const y = 2.93 + .021 * (heartY + 2) * fill;
     const z = range(-1, 1) * (.09 + .16 * Math.sqrt(1 - fill * fill));
-    // 心形使用独立的点亮进度，螺旋走到最顶端也不会提前点亮它。
-    add([x, y, z], range(.023, .050), range(.83, 1), 2);
+    // 心形的光先触到下尖，随后扩到两侧弧线。
+    const heartHeight = Math.max(0, Math.min(1, (y - 2.60) / .64));
+    add([x, y, z], range(.023, .050), range(.83, 1), 2 + .32 * heartHeight);
   }
 
   if (treeOnly) return pieces;
@@ -4232,12 +4234,13 @@ const ignitionShader = `uniform vec3 entryIgnition;
   vec2 ignitionLight(float cue) {
     if(entryIgnition.x<=0.) return vec2(1.,0.);
     float past=entryIgnition.y-cue;
-    float reached=smoothstep(-.008,.072,past);
+    float reached=smoothstep(-.037,.11,past);
     float heart=step(1.5,cue);
     float shade=mix(entryIgnition.x,min(1.,entryIgnition.x*1.8),heart);
-    float offset=past-.039;
-    float crest=reached*exp(-360.*offset*offset)*(1.-heart)*shade;
-    return vec2(mix(1.,mix(reached,entryIgnition.z,heart),shade),crest);
+    float offset=past-.051;
+    float crest=reached*exp(-205.*offset*offset)*(1.-heart)*shade;
+    float heartLight=smoothstep(0.,.66,entryIgnition.z-max(0.,cue-2.));
+    return vec2(mix(1.,mix(reached,heartLight,heart),shade),crest);
   }`;
 
 function makeSculpture(scene,ornaments,entryIgnition) {
@@ -4305,7 +4308,7 @@ function makeSculpture(scene,ornaments,entryIgnition) {
           vec3 softRose = mix(vec3(1.,.49,.64),vec3(1.,.70,.79),.28+.31*pulse);
           float softFill = .306 + .057*smoothstep(.02,1.0,vGlint.y) + .022*pulse;
           outgoingLight = mix(outgoingLight,softRose*softFill + outgoingLight*.095,wishAmount);
-          outgoingLight = outgoingLight*(.065+.935*vIgnition.x) + vec3(1.,.48,.64)*(.11*vIgnition.y);
+          outgoingLight = outgoingLight*(.065+.935*vIgnition.x) + vec3(1.,.48,.64)*(.085*vIgnition.y);
           #include <opaque_fragment>`);
     };
     const mesh=new THREE.InstancedMesh(geo,surface,selected.length);
@@ -4349,7 +4352,7 @@ function makeSculpture(scene,ornaments,entryIgnition) {
         float pulse=pow(.5+.5*sin(glitterTime*(.77+.08*sin(phase))+phase),3.);
         vec2 ignition=ignitionLight(haloOptics.w);
         radiance=mix(haloOptics.y*.76,.34+.96*haloOptics.z,treeAmount)*(.92+.10*pulse);
-        radiance*=.036+.964*ignition.x+.31*ignition.y;
+        radiance*=.036+.964*ignition.x+.23*ignition.y;
         vec4 center=modelViewMatrix*instanceMatrix*vec4(0,0,0,1);
         suspendedDust(center,phase);
         float size=length(instanceMatrix[0].xyz);
@@ -4382,9 +4385,10 @@ function makeSculpture(scene,ornaments,entryIgnition) {
   function snapshot() {
     for(const o of ornaments){o.start=o.current.slice();o.fromSize=o.diameter;}
   }
-  function draw(state,t,{textAmount=0,scatterScale=[1,1],treeGlow=Number(state==='tree'),wishGlow=0,entering=false}={}) {
+  function draw(state,t,{textAmount=0,scatterScale=[1,1],treeGlow=Number(state==='tree'),wishGlow=0,entering=false,openingSpread=0}={}) {
     const dispersing=state==='scatter', writing=state==='text'||state==='name';
     const sx=dispersing?scatterScale[0]:1, sy=dispersing?scatterScale[1]:state==='text'?.85:1;
+    const {clamp,lerp}=THREE.MathUtils;
     const smooth=v=>v*v*(3-2*v);
     writingAmount.value=textAmount;
     treeAmount.value=treeGlow;
@@ -4393,12 +4397,18 @@ function makeSculpture(scene,ornaments,entryIgnition) {
       selected.forEach((o,i)=>{
         // 开场从树底先聚合，树梢随后收拢。其他形态仍共用同一套过渡。
         const delay=entering?o.entryDelay:o.delay;
-        const u=smooth(THREE.MathUtils.clamp((t-delay)/(entering?.63:1-delay),0,1));
+        const u=smooth(clamp((t-delay)/(entering?.63:1-delay),0,1));
         const arc=u===0||u===1?0:Math.sin(u*Math.PI);
         const dest=o[state];
-        o.current[0]=THREE.MathUtils.lerp(o.start[0],dest[0]*sx,u)+arc*.40*Math.cos(o.drift);
-        o.current[1]=THREE.MathUtils.lerp(o.start[1],dest[1]*sy+(writing?.18:0),u)+arc*.24*Math.sin(o.drift);
-        o.current[2]=THREE.MathUtils.lerp(o.start[2],dest[2],u)+arc*.57;
+        let [x,y,z]=o.start;
+        if(openingSpread){
+          x=lerp(x,o.openingSpread[0],openingSpread);
+          y=lerp(y,o.openingSpread[1],openingSpread);
+          z=lerp(z,o.openingSpread[2],openingSpread);
+        }
+        o.current[0]=lerp(x,dest[0]*sx,u)+arc*.40*Math.cos(o.drift);
+        o.current[1]=lerp(y,dest[1]*sy+(writing?.18:0),u)+arc*.24*Math.sin(o.drift);
+        o.current[2]=lerp(z,dest[2],u)+arc*.57;
         const size=state==='name'?o.nameSize*.94:state==='text'?o.textSize*1.1:dispersing?o.scatterSize:o.treeSize;
         o.diameter=THREE.MathUtils.lerp(o.fromSize,size,u);
         transform.position.fromArray(o.current);transform.rotation.set(...o.rotation);
@@ -4457,6 +4467,13 @@ function makeStarlight(scene,sculpture,ornaments,entryIgnition) {
     style.push(range(1.7,4.7),range(.24,.72),range(0,6.28),3);
     igniteAt.push(0);
   }
+  // 祝福页的雪分成近处晶体和远处碎雪，与场景星屑共用同一次绘制。
+  for(let i=0;i<128;i++){
+    const near=i<26;
+    positions.push(range(-1.14,1.14),range(-1.14,1.14),near?range(.60,1):range(0,.69));
+    style.push(near?range(8.1,14.3):range(2.4,6.3),near?range(.32,.55):range(.16,.41),range(0,6.28),4);
+    igniteAt.push(0);
+  }
   const geometry=new THREE.BufferGeometry();
   geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
   geometry.setAttribute('pointStyle',new THREE.Float32BufferAttribute(style,4));
@@ -4472,10 +4489,29 @@ function makeStarlight(scene,sculpture,ornaments,entryIgnition) {
       uniform float uTime,treeGlow,wishGlow,openingSky,burst,screenRatio;
       uniform mat4 treeTransform;
       varying float vLayer,vIntensity;
+      varying vec2 vSnow;
       void main(){
         vLayer=pointStyle.w;
+        vSnow=vec2(0.);
         float flicker=.95+.05*cos(uTime*.42+pointStyle.z);
-        if(vLayer<.5){
+        if(vLayer>3.5){
+          if(wishGlow<=.012){
+            gl_Position=vec4(2.,2.,2.,1.);
+            gl_PointSize=1.;
+            vIntensity=0.;
+            return;
+          }
+          float depth=position.z;
+          vec2 fall=vec2(mix(.005,.016,depth),-mix(.062,.142,depth))*uTime;
+          float sway=(.024+.029*depth)*sin(uTime*.48+pointStyle.z)+.017*sin(uTime*.22+pointStyle.z*1.6);
+          vec2 snow=mod(position.xy+fall+vec2(sway,0.)+1.14,2.28)-1.14;
+          float edge=1.-smoothstep(.94,1.13,max(abs(snow.x),abs(snow.y)));
+          float nearLetters=(1.-smoothstep(.18,.96,abs(snow.x)))*(1.-smoothstep(.15,.42,abs(snow.y-.026)));
+          gl_Position=vec4(snow,.995,1.);
+          gl_PointSize=pointStyle.x*screenRatio;
+          vSnow=vec2(pointStyle.z+uTime*(.09+.12*depth),smoothstep(5.8,8.2,pointStyle.x));
+          vIntensity=pointStyle.y*edge*(1.-.68*nearLetters)*smoothstep(.18,.87,wishGlow);
+        } else if(vLayer<.5){
           // 大星点更近，漂得稍快。越过视口后从留白区循环回来。
           float nearStar=smoothstep(2.3,7.6,pointStyle.x);
           vec2 flow=mix(vec2(.007,-.019),vec2(.020,-.047),nearStar)*uTime;
@@ -4508,10 +4544,27 @@ function makeStarlight(scene,sculpture,ornaments,entryIgnition) {
         }
       }`,
     fragmentShader:`varying float vLayer,vIntensity;
+      varying vec2 vSnow;
+      float snowflake(vec2 uv,float radius){
+        // 六条晶体枝和细小分叉。远处的雪只留柔软的亮点。
+        float angle=atan(uv.y,uv.x)+vSnow.x;
+        float fold=abs(mod(angle+.5235988,1.0471976)-.5235988);
+        vec2 twig=radius*vec2(cos(fold),sin(fold));
+        float stem=exp(-142.*twig.y*twig.y)*(1.-smoothstep(.67,.95,twig.x));
+        float gap=twig.y-.73*(twig.x-.33);
+        float fork=exp(-170.*gap*gap)*smoothstep(.32,.41,twig.x)*(1.-smoothstep(.62,.76,twig.x));
+        float glow=.16*exp(-4.2*radius*radius);
+        return mix(exp(-8.*radius*radius),.81*max(stem,.76*fork)+glow,vSnow.y);
+      }
       void main(){
         if(vIntensity<.008) discard;
         vec2 uv=gl_PointCoord*2.-1.;
         float r=dot(uv,uv);
+        if(vLayer>3.5){
+          float alpha=vIntensity*snowflake(uv,sqrt(r))*(1.-smoothstep(.66,1.,r));
+          gl_FragColor=vec4(1.,.93,.97,alpha);
+          return;
+        }
         float core=exp(-(vLayer<.5||vLayer>1.5?10.:15.)*r);
         float halo=exp(-4.3*r);
         float mask=(1.-smoothstep(.48,1.,r));
@@ -4798,9 +4851,12 @@ function mountOpeningArt(canvas) {
 function openExhibition(cover, onEntered) {
   // 配置中心：初始相机距离和可视高度决定构图，动画时长为毫秒。
   const config = { frameHeight:7.45, scatterHeight:8.23, distance:11, turnSpeed:.105,
-    holdTime:350, dragDistance:6, entryDuration:3750, darkPause:260, spiralLightDuration:3080, heartLightDuration:660,
+    holdTime:350, dragDistance:6, entryDuration:4050, darkPause:80, spiralLightDuration:3240, heartOverlap:265, heartLightDuration:790,
     duration:{tree:1540,scatter:1380,text:1610,name:1700} };
-  const openingDuration=config.entryDuration+config.darkPause+config.spiralLightDuration+config.heartLightDuration;
+  const spiralStarts=config.entryDuration+config.darkPause;
+  const heartStarts=spiralStarts+config.spiralLightDuration-config.heartOverlap;
+  const openingDuration=heartStarts+config.heartLightDuration;
+  const firstLight=-.075;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const canvas = document.querySelector('#scene');
   const main = document.querySelector('main');
@@ -4874,19 +4930,24 @@ function openExhibition(cover, onEntered) {
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1,1.7,Math.sqrt(2250000/Math.max(1,width*height))));
     renderer.setSize(Math.max(1,width),Math.max(1,height),false);
     frameHeight=goalHeight(); project();
-    if (animation?.entry) placeOpeningCloud();
-    else if (animation) animation.height=frameHeight;
+    if (animation?.entry) {
+      if (main.dataset.entry!=='lighting') placeOpeningCloud();
+    } else if (animation) animation.height=frameHeight;
     else if (state==='scatter') sculpture.draw('scatter',1,{scatterScale:scatterScale()});
   }
   function placeOpeningCloud() {
-    // 将幕布上的螺旋反投影到不同景深，实体直接接续光雾的位置。
+    // 先接上幕布的光雾，再给每颗粒子一个向外散开的三维落点。
     const viewPoint = new THREE.Vector3();
     const [projectionX, projectionY] = [camera.projectionMatrix.elements[0], camera.projectionMatrix.elements[5]];
     const openingScale = openingSpiralWidth(aspect,1)/aspect;
+    const projectPoint=(x,y,depth)=>viewPoint.set(x*depth/projectionX,y*depth/projectionY,-depth)
+      .applyMatrix4(camera.matrixWorld).toArray();
     ornaments.forEach((ornament,i)=>{
       const {x,y,depth}=openingCloud[i];
-      viewPoint.set(x*openingScale*depth/projectionX,y*depth/projectionY,-depth).applyMatrix4(camera.matrixWorld);
-      ornament.start=viewPoint.toArray();
+      const [side,up,forward]=ornament.scatter;
+      const startX=x*openingScale;
+      ornament.start=projectPoint(startX,y,depth);
+      ornament.openingSpread=projectPoint(.39*startX+.101*side,.31*y+.166*up,.94*depth-.47*forward);
       ornament.fromSize=ornament.size*(ornament.sparkle?.80:.44);
     });
   }
@@ -4990,12 +5051,15 @@ function openExhibition(cover, onEntered) {
   }
   for (const type of ['pointerup','pointercancel','lostpointercapture']) canvas.addEventListener(type,release,true);
   function assembleOpening(t) {
-    const {clamp,smoothstep}=THREE.MathUtils;
-    const gather=clamp((t-.39)/.61,0,1);
-    const lit=smoothstep(t,.015,.25);
+    const {clamp,smoothstep,smootherstep}=THREE.MathUtils;
+    const phase=t<.18?'revealing':t<.445?'scattering':'gathering';
+    if (main.dataset.entry!==phase) main.dataset.entry=phase;
+    const spread=smootherstep(t,.17,.43);
+    const gather=clamp((t-.445)/.555,0,1);
+    const lit=smoothstep(t,.015,.207);
     const settled=smoothstep(gather,.32,1);
-    const dim=smoothstep(gather,.39,.96);
-    // 先显出螺旋并留一拍，再由树底向上聚合。
+    const dim=smootherstep(gather,.37,1);
+    // 光雾清晰、粒子向外散开、再从树底开始聚拢。
     cover.style.setProperty('--opening-haze',1-smoothstep(t,.026,.19));
     cover.style.setProperty('--opening-night',1-smoothstep(t,.025,.22));
     const copy=1-smoothstep(t,.092,.26);
@@ -5008,10 +5072,10 @@ function openExhibition(cover, onEntered) {
     cover.style.setProperty('--opening-name-scale',1-.32*lift);
     main.style.setProperty('--entry-blur',`${5.4*(1-lit)}px`);
     main.style.setProperty('--entry-glow',(.76+.14*settled)*lit);
-    main.style.setProperty('--entry-backlight',.15*lit+.64*settled*(1-dim)+.15*dim);
-    entryIgnition.value.set(dim,-.11,0);
+    main.style.setProperty('--entry-backlight',.15*lit+.055*spread*(1-settled)+.64*settled*(1-dim)+.15*dim);
+    entryIgnition.value.set(dim,firstLight,0);
     amountTree=.51+.49*smoothstep(gather,.17,.83);
-    sculpture.draw('tree',gather,{treeGlow:amountTree,entering:true});
+    sculpture.draw('tree',gather,{treeGlow:amountTree,entering:true,openingSpread:spread});
     sculpture.root.rotation.y=.12*Math.sin(Math.PI*smoothstep(t,.19,.91));
     return settled;
   }
@@ -5021,14 +5085,18 @@ function openExhibition(cover, onEntered) {
       assembleOpening(1);
       main.dataset.entry='lighting';
     }
-    // 位置矩阵已经落定。接下来只更新着色器进度，依次经过螺旋环和爱心。
-    const {clamp,smoothstep}=THREE.MathUtils;
-    const sinceBase=elapsed-config.entryDuration-config.darkPause;
-    const spiral=clamp(sinceBase/config.spiralLightDuration,0,1);
-    const heart=smoothstep(sinceBase,config.spiralLightDuration,config.spiralLightDuration+config.heartLightDuration);
-    entryIgnition.value.set(1,-.11+1.25*spiral,heart);
-    main.style.setProperty('--entry-backlight',.30+.58*spiral+.12*heart);
-    if(heart>=.84 && openingBurstStart===null) openingBurstStart=now;
+    // 光到达最后一圈时，爱心已经从尖端渐亮。树身和爱心共享同一条时间轴。
+    const {clamp,smoothstep,smootherstep,lerp}=THREE.MathUtils;
+    const travel=clamp((elapsed-spiralStarts)/config.spiralLightDuration,0,1);
+    const spiral=lerp(travel,smootherstep(travel,0,1),.34);
+    const heart=clamp((elapsed-heartStarts)/config.heartLightDuration,0,1);
+    const heartBloom=smoothstep(heart,0,1);
+    entryIgnition.value.set(1,lerp(firstLight,1.15,spiral),heart);
+    main.style.setProperty('--entry-backlight',.30+.58*spiral+.12*heartBloom);
+    main.style.setProperty('--entry-ui',smoothstep(heart,.52,1));
+    // 末段轻轻带起树身的惯性，接上常态转速。
+    sculpture.root.rotation.y=.04*heart*heart;
+    if(heart>=.86 && openingBurstStart===null) openingBurstStart=now;
     return 1;
   }
   function frame(now) {
@@ -5090,7 +5158,7 @@ const openingArt = mountOpeningArt(opening.querySelector('canvas'));
 function finishOpening() {
   opening.remove();
   delete exhibition.dataset.entry;
-  for (const property of ['--entry-blur','--entry-backlight','--entry-glow']) exhibition.style.removeProperty(property);
+  for (const property of ['--entry-blur','--entry-backlight','--entry-glow','--entry-ui']) exhibition.style.removeProperty(property);
   exhibition.inert=false;
 }
 
@@ -5099,7 +5167,7 @@ opening.addEventListener('click', () => {
   openingArt.disconnect();
   opening.dataset.leaving='';
   opening.inert=true;
-  exhibition.dataset.entry='gathering';
+  exhibition.dataset.entry='revealing';
   exhibition.inert=true;
   exhibition.hidden = false;
   initCarol(document.querySelector('#sound'));
