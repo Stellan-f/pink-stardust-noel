@@ -23,6 +23,14 @@
     #cycle:hover{border-color:#ffd3df;background:#311b24}
     main[data-state=name] #cycle{font-family:"Microsoft YaHei UI","PingFang SC",system-ui,sans-serif;font-size:11px;letter-spacing:.13em}
     .gallery,#scene{position:absolute;inset:0;width:100%;height:100%}
+    .backlight{position:absolute;inset:0;pointer-events:none;opacity:.32;transition:opacity 900ms ease;
+      background:
+      radial-gradient(ellipse min(42vw,52vh) 57vh at var(--light-x,50%) var(--light-y,57%),
+        #d585b74d 0%,#bf6caa39 28%,#8a488c26 54%,#63245f11 78%,transparent 100%),
+      radial-gradient(ellipse min(60vw,72vh) 27vh at var(--light-x,50%) calc(var(--light-y,57%) + 27vh),
+        #c972a842 0%,#a44c8827 37%,#6c235c11 67%,transparent 100%)}
+    main[data-state=tree] .backlight{opacity:1}
+    main[data-state=scatter] .backlight{opacity:.58}
     /* 柔化密集粒子重叠时的峰值亮度，保持字形内部的暗部间隙。 */
     #scene{display:block;touch-action:none;user-select:none;cursor:grab;outline-offset:-4px;opacity:.78}
     main[data-state=tree] #scene{opacity:.90}
@@ -53,6 +61,7 @@
       <button type="button" id="cycle" aria-live="polite" aria-label="圣诞树，点击散开" title="点击切换形态">CHRISTMAS TREE</button>
     </header>
     <section class="gallery" aria-label="王家馨的粉色星尘圣诞树">
+      <div class="backlight" aria-hidden="true"></div>
       <canvas id="scene" tabindex="0" aria-label="点击或按空格，依次切换圣诞树、散开、圣诞祝福、王家馨。拖动旋转，长按拖动平移，滚轮或双指缩放。"></canvas>
       <p id="failure" role="status" hidden></p>
     </section>
@@ -4335,7 +4344,7 @@ function makeStarlight(scene,sculpture,ornaments) {
   for(let i=0;i<340;i++){
     const closer=i<9;
     positions.push(range(-1,1),range(-1,1),0);
-    style.push(closer?range(10,22):range(2,6.6),closer?range(.70,.94):range(.27,.88),range(0,6.28),0);
+    style.push(closer?range(10,22):range(2.3,6.6),closer?range(.70,.94):range(.34,.88),range(0,6.28),0);
   }
   for(let i=0;i<1680;i++){
     const angle=i*2.3999632297;
@@ -4369,10 +4378,16 @@ function makeStarlight(scene,sculpture,ornaments) {
         vLayer=pointStyle.w;
         float flicker=.95+.05*cos(uTime*.42+pointStyle.z);
         if(vLayer<.5){
-          float treeSky=mix(.26,1.,treeGlow);
-          gl_Position=vec4(position.xy,0.999,1.);
+          // 大星点更近，漂得稍快。越过视口后从留白区循环回来。
+          float nearStar=smoothstep(2.3,7.6,pointStyle.x);
+          vec2 flow=mix(vec2(.007,-.019),vec2(.020,-.047),nearStar)*uTime;
+          vec2 sway=vec2(sin(uTime*.38+pointStyle.z),cos(uTime*.31+pointStyle.z))*vec2(.024,.017);
+          vec2 skyPosition=mod(position.xy+flow+sway+1.12,2.24)-1.12;
+          float visibleEdge=1.-smoothstep(.93,1.10,max(abs(skyPosition.x),abs(skyPosition.y)));
+          float treeSky=mix(.43,1.,treeGlow);
+          gl_Position=vec4(skyPosition,0.999,1.);
           gl_PointSize=pointStyle.x*screenRatio;
-          vIntensity=pointStyle.y*flicker*treeSky;
+          vIntensity=pointStyle.y*flicker*treeSky*visibleEdge;
         } else {
           vec3 drift=vec3(.06*sin(uTime*.24+pointStyle.z),.055*cos(uTime*.34+pointStyle.z),0);
           vec4 local=vec4(position+drift,1.);
@@ -4388,7 +4403,7 @@ function makeStarlight(scene,sculpture,ornaments) {
         if(vIntensity<.008) discard;
         vec2 uv=gl_PointCoord*2.-1.;
         float r=dot(uv,uv);
-        float core=exp(-(vLayer>1.5?10.:15.)*r);
+        float core=exp(-(vLayer<.5||vLayer>1.5?10.:15.)*r);
         float halo=exp(-4.3*r);
         float mask=(1.-smoothstep(.48,1.,r));
         vec3 pink=vLayer<.5?vec3(.86,.87,1.):vLayer<1.5?vec3(.97,.79,.90):vec3(1.,.65,.83);
@@ -4596,6 +4611,7 @@ function openExhibition() {
   const canvas = document.querySelector('#scene');
   const main = document.querySelector('main');
   const cycle = document.querySelector('#cycle');
+  const backlight = document.querySelector('.backlight');
   const states = ['tree','scatter','text','name'];
   const labels = {
     tree:['CHRISTMAS TREE','圣诞树，点击散开'],
@@ -4637,10 +4653,22 @@ function openExhibition() {
     return Math.max(config.frameHeight,4.72/aspect);
   };
   const scatterScale=()=>[config.scatterHeight*aspect/17.4,config.scatterHeight/9.3];
+  const lightAnchor=new THREE.Vector3();
+  let lightX,lightY;
+  function aimBacklight() {
+    camera.updateMatrixWorld();
+    lightAnchor.set(0,-.46,0).project(camera);
+    const x=Math.round((lightAnchor.x+1)*500)/10;
+    const y=Math.round((1-lightAnchor.y)*500)/10;
+    if(x!==lightX){backlight.style.setProperty('--light-x',x+'%');lightX=x;}
+    if(y!==lightY){backlight.style.setProperty('--light-y',y+'%');lightY=y;}
+  }
+  controls.addEventListener('change',aimBacklight);
   function project() {
     camera.aspect=aspect;
     camera.fov=2*Math.atan(frameHeight/(2*config.distance))*180/Math.PI;
     camera.updateProjectionMatrix();
+    aimBacklight();
   }
   function resize() {
     const {width,height} = canvas.parentElement.getBoundingClientRect();
