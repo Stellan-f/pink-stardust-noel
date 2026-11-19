@@ -13,7 +13,7 @@
       background:radial-gradient(ellipse 35% 48% at 50% 58%,#10060d 1%,#080307 52%,#030203 100%)}
     main[data-state=scatter]{background:radial-gradient(ellipse at 50% 51%,#11060d,#080408 54%,#030203)}
     header{position:absolute;z-index:2;top:clamp(16px,4.2vh,60px);inset-inline:0;text-align:center;pointer-events:none}
-    h1{font:400 clamp(23px,min(2.47vw,4.80vh),57px)/1.15 Georgia,"Times New Roman",serif;letter-spacing:.102em;text-indent:.102em;color:#ffe5ec;text-shadow:0 0 9px #ff8fb363,0 0 23px #ff609648}
+    h1{font:400 clamp(23px,min(2.47vw,4.80vh),57px)/1.15 Georgia,"Times New Roman",serif;letter-spacing:.102em;text-indent:.102em;color:#d7b9c6;text-shadow:0 0 8px #e893af2b}
     button{cursor:pointer;color:inherit;touch-action:manipulation;font:inherit}
     button:focus-visible,canvas:focus-visible{outline:1px solid #ffa9cb;outline-offset:3px}
     #cycle{position:relative;pointer-events:auto;display:inline-block;margin-top:10px;min-width:98px;height:24px;
@@ -23,7 +23,8 @@
     #cycle:hover{border-color:#ffd3df;background:#311b24}
     main[data-state=name] #cycle{font-family:"Microsoft YaHei UI","PingFang SC",system-ui,sans-serif;font-size:11px;letter-spacing:.13em}
     .gallery,#scene{position:absolute;inset:0;width:100%;height:100%}
-    #scene{display:block;touch-action:none;user-select:none;cursor:grab;outline-offset:-4px}
+    /* 柔化密集粒子重叠时的峰值亮度，保持字形内部的暗部间隙。 */
+    #scene{display:block;touch-action:none;user-select:none;cursor:grab;outline-offset:-4px;opacity:.78}
     #scene:active{cursor:grabbing}
     #failure{position:absolute;inset:45% 12% auto;text-align:center;font:14px/1.65 system-ui,sans-serif}
     footer{position:absolute;z-index:3;bottom:max(12px,env(safe-area-inset-bottom));left:0;right:0;display:flex;gap:14px;align-items:center;justify-content:center;pointer-events:none;color:#ac8a99;font:11px/1.45 "Microsoft YaHei UI","PingFang SC",system-ui,sans-serif}
@@ -4155,7 +4156,7 @@ function lightStudio(scene,renderer) {
   const pmrem=new THREE.PMREMGenerator(renderer);
   const reflection=pmrem.fromScene(room,.028);
   scene.environment=reflection.texture;
-  scene.environmentIntensity=.57;
+  scene.environmentIntensity=.49;
   room.dispose();
   pmrem.dispose();
   scene.add(new THREE.AmbientLight(0xffd2de,.18));
@@ -4219,10 +4220,10 @@ function makeSculpture(scene,ornaments) {
           .replace('#include <project_vertex>','#include <project_vertex>\nsuspendedDust(mvPosition,glint.x); gl_Position=projectionMatrix*mvPosition;');
       shader.fragmentShader='varying vec3 vGlint; uniform float glitterTime;\n'+
         shader.fragmentShader.replace('#include <opaque_fragment>',`
-          float pulse = pow(0.5+0.5*sin(glitterTime*(1.34+0.14*sin(vGlint.x))+vGlint.x),5.0);
-          outgoingLight = outgoingLight*vGlint.y*(0.82 + 0.38*pulse)
+          float pulse = pow(0.5+0.5*sin(glitterTime*(.77+.08*sin(vGlint.x))+vGlint.x),3.0);
+          outgoingLight = outgoingLight*vGlint.y*(0.83 + 0.10*pulse)
                         + diffuseColor.rgb*(0.012+0.046*vGlint.y);
-          outgoingLight += vec3(1.0,0.53,0.66)*vGlint.z*(0.11+1.4*pulse);
+          outgoingLight += vec3(1.0,0.49,0.64)*vGlint.z*(0.09+0.43*pulse);
           #include <opaque_fragment>`);
     };
     const mesh=new THREE.InstancedMesh(geo,surface,selected.length);
@@ -4250,27 +4251,27 @@ function makeSculpture(scene,ornaments) {
   });
   // 所有几何体和八面体共用一次加色混合绘制。核心和外晕在同一面片内衰减。
   const crownHaloIndex=haloOptics.length/3;
-  haloOptics.push(1.2,1.65,1);
+  haloOptics.push(1.2,1.05,1);
   const haloGeo=new THREE.PlaneGeometry(1,1);
   haloGeo.setAttribute('haloOptics',new THREE.InstancedBufferAttribute(new Float32Array(haloOptics),3));
   const writingAmount={value:0},viewportHeight={value:600};
   const haloMaterial=new THREE.ShaderMaterial({
     uniforms:{glitterTime:time,diffusion,pointerNdc:pointer,writingAmount,viewportHeight},
-    transparent:true,depthWrite:false,depthTest:false,blending:THREE.AdditiveBlending,
+    transparent:true,depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending,
     vertexShader:driftShader+`attribute vec3 haloOptics;
       uniform float writingAmount; uniform float viewportHeight;
       varying vec2 coord; varying float radiance;
       void main(){
         coord=uv*2.-1.;
         float phase=haloOptics.x;
-        float pulse=pow(.5+.5*sin(glitterTime*(1.34+.14*sin(phase))+phase),3.);
-        radiance=haloOptics.y*(.84+.37*pulse);
+        float pulse=pow(.5+.5*sin(glitterTime*(.77+.08*sin(phase))+phase),3.);
+        radiance=haloOptics.y*(.76+.10*pulse);
         vec4 center=modelViewMatrix*instanceMatrix*vec4(0,0,0,1);
         if(haloOptics.z<.5) suspendedDust(center,phase);
         float clipW=(projectionMatrix*center).w;
         float unitsPerPixel=2.*max(0.,clipW)/(projectionMatrix[1][1]*viewportHeight);
-        float spread=mix(3.8,2.95,writingAmount)+.25*haloOptics.y+haloOptics.z*1.7;
-        float diameter=max(length(instanceMatrix[0].xyz)*spread,unitsPerPixel*mix(4.4,3.6,writingAmount));
+        float spread=mix(3.05,2.62,writingAmount)+.18*haloOptics.y+haloOptics.z*.75;
+        float diameter=max(length(instanceMatrix[0].xyz)*spread,unitsPerPixel*mix(3.6,2.95,writingAmount));
         center.xy+=position.xy*diameter;
         gl_Position=projectionMatrix*center;
       }`,
@@ -4281,7 +4282,7 @@ function makeSculpture(scene,ornaments) {
         float veil=exp(-3.0*rr);
         float envelope=1.-smoothstep(.55,1.,rr);
         vec3 pink=mix(vec3(1.,.25,.53),vec3(1.,.65,.80),core);
-        gl_FragColor=vec4(pink,(.32*core+.145*veil)*envelope*radiance);
+        gl_FragColor=vec4(pink,(.092*core+.049*veil)*envelope*radiance);
       }`
   });
   const halos=new THREE.InstancedMesh(haloGeo,haloMaterial,crownHaloIndex+1);
@@ -4291,7 +4292,7 @@ function makeSculpture(scene,ornaments) {
   halos.onBeforeRender=renderer=>{viewportHeight.value=Math.max(1,renderer.getSize(viewport).y);};
   root.add(halos);
   const finial=new THREE.Mesh(new THREE.OctahedronGeometry(1),
-    new THREE.MeshStandardMaterial({color:0xffcfdd,metalness:.95,roughness:.05,emissive:0xff87ae,emissiveIntensity:1.0,flatShading:true}));
+    new THREE.MeshStandardMaterial({color:0xffb9d0,metalness:.95,roughness:.05,emissive:0xff87ae,emissiveIntensity:.54,flatShading:true}));
   finial.rotation.set(.12,.63,.12);root.add(finial);
   const crownAt={tree:[0,2.83,0],scatter:[3.69,1.15,3.7],text:ornaments[0].text,name:ornaments[0].name};
   let crownFrom=crownAt.tree.slice(),crownSize=.127,crownSizeFrom=crownSize;
@@ -4539,7 +4540,7 @@ function openExhibition() {
   const renderer = new THREE.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'high-performance'});
   renderer.setClearColor(0,0);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.02;
+  renderer.toneMappingExposure = .83;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(38,1,.12,90);
   camera.position.set(0,.69,config.distance);
