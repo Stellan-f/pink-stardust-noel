@@ -9,9 +9,39 @@
     :root{color-scheme:dark;color:#ffe3ec;background:#030203;font-family:Georgia,"Times New Roman",serif}
     *,*::before,*::after{box-sizing:border-box}
     body,h1,p{margin:0}
+    [hidden]{display:none!important}
+    .opening{position:relative;isolation:isolate;overflow:hidden;height:100vh;height:100svh}
+    .opening::before{content:"";position:absolute;inset:0;z-index:-1;opacity:var(--opening-night,1);
+      background:radial-gradient(ellipse min(44vw,42vh) 36vh at 50% 52%,#120a13 0%,#080509 62%,#030203 100%)}
+    .opening[data-leaving]{position:fixed;inset:0;z-index:5;pointer-events:none}
+    #opening-art{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:var(--opening-haze,1)}
+    .opening-letter{position:absolute;z-index:1;inset:0;text-align:center;pointer-events:none}
+    .opening-date,.opening-name,.opening-note,.opening-button{position:absolute;left:50%;transform:translate(-50%,-50%);white-space:nowrap}
+    .opening-date,.opening-note,.opening-button{opacity:var(--opening-copy,1)}
+    .opening-date{top:32%;color:#927482;
+      font:400 clamp(9px,2.6vmin,14px)/1.2 Georgia,"Songti SC","SimSun",serif;letter-spacing:1.32em;text-indent:1.32em}
+    .opening-name{top:var(--opening-name-y,41.7%);opacity:var(--opening-name-alpha,1);
+      transform:translate(-50%,-50%) scale(var(--opening-name-scale,1));
+      font:400 clamp(34px,10.65vmin,74px)/1.18 Georgia,"Times New Roman",serif;
+      letter-spacing:.041em;text-indent:0;text-transform:none;color:#f4c8c6;text-shadow:none;
+      background:linear-gradient(180deg,#fff0dc 13%,#f3c8c8 53%,#cb8e9f 94%);background-clip:text;color:transparent;
+      filter:drop-shadow(0 0 14px #edb4ac44)}
+    .opening-name em{font-weight:400}
+    .opening-note{top:49.2%;color:#c09fac;
+      font:400 clamp(11px,3.1vmin,17px)/1.55 "Songti SC","STSong","SimSun","Noto Serif CJK SC",serif;
+      letter-spacing:.37em;text-indent:.37em;text-shadow:0 1px 14px #1c0b17}
+    .opening-button{
+      top:62.2%;display:inline-grid;place-items:center;min-width:clamp(130px,39vmin,248px);
+      min-height:clamp(44px,12.2vmin,73px);padding:0 18px;border:1px solid #dcb7c552;border-radius:999px;
+      color:#f4dbdc;background:#10090e7d;pointer-events:auto;
+      font:400 clamp(12px,3.2vmin,17px)/1.3 "Songti SC","STSong","SimSun","Noto Serif CJK SC",serif;
+      letter-spacing:.23em;text-indent:.23em;box-shadow:0 0 22px #df91b615,inset 0 0 13px #f0a1ca10;
+    }
+    .opening-button:hover{background:#24101ddd;border-color:#e8bed099}
     main{height:100vh;height:100svh;min-height:310px;position:relative;isolation:isolate;overflow:hidden;
       background:radial-gradient(ellipse 37% 42% at 50% 88%,#12070e 1%,#070305 64%,#020102 100%)}
     main[data-state=scatter]{background:radial-gradient(ellipse at 50% 51%,#11060d,#080408 54%,#030203)}
+    main[data-entry=gathering] header,main[data-entry=gathering] footer{visibility:hidden}
     header{position:absolute;z-index:2;top:clamp(16px,4.2vh,60px);inset-inline:0;text-align:center;pointer-events:none}
     h1{font:400 clamp(23px,min(2.47vw,4.80vh),57px)/1.15 Georgia,"Times New Roman",serif;letter-spacing:.102em;text-indent:.102em;text-transform:uppercase;color:#e4c7d2;text-shadow:0 0 8px #e893af2b}
     button{cursor:pointer;color:inherit;touch-action:manipulation;font:inherit}
@@ -31,10 +61,21 @@
         #c972a842 0%,#a44c8827 37%,#6c235c11 67%,transparent 100%)}
     main[data-state=tree] .backlight{opacity:1}
     main[data-state=scatter] .backlight{opacity:.58}
+    main[data-state=name] .backlight{opacity:.09}
+    main[data-entry=gathering] .backlight{opacity:var(--entry-backlight,0);transition:none}
+    .wish-light{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 780ms ease;
+      background:
+        radial-gradient(ellipse min(48vw,69vh) min(25vh,39vw) at var(--light-x,50%) var(--light-y,50%),
+          #d184ac47 0%,#bb6b9b36 32%,#85497321 56%,#5129420b 79%,transparent 100%),
+        radial-gradient(ellipse min(68vw,90vh) min(33vh,53vw) at var(--light-x,50%) var(--light-y,50%),
+          #92526826 0%,#683b5521 36%,transparent 100%);
+      filter:blur(16px)}
+    main[data-state=name] .wish-light{opacity:1}
     /* 柔化密集粒子重叠时的峰值亮度，保持字形内部的暗部间隙。 */
     #scene{display:block;touch-action:none;user-select:none;cursor:grab;outline-offset:-4px;opacity:.78}
     main[data-state=tree] #scene{opacity:.90}
     main[data-state=scatter] #scene{opacity:.85}
+    main[data-entry=gathering] #scene{opacity:var(--entry-glow,0);filter:blur(var(--entry-blur,5px))}
     #scene:active{cursor:grabbing}
     #failure{position:absolute;inset:45% 12% auto;text-align:center;font:14px/1.65 system-ui,sans-serif}
     footer{position:absolute;z-index:3;bottom:max(12px,env(safe-area-inset-bottom));left:0;right:0;display:flex;gap:14px;align-items:center;justify-content:center;pointer-events:none;color:#ac8a99;font:11px/1.45 "Microsoft YaHei UI","PingFang SC",system-ui,sans-serif}
@@ -56,13 +97,23 @@
   </style>
 </head>
 <body>
-  <main data-state="tree">
+  <section class="opening" id="opening" aria-labelledby="opening-title">
+    <canvas id="opening-art" aria-hidden="true"></canvas>
+    <div class="opening-letter">
+      <p class="opening-date">2026 · 冬</p>
+      <h1 class="opening-name" id="opening-title" lang="en">to <em>wjx</em></h1>
+      <p class="opening-note">这棵树，是写给你的</p>
+      <button class="opening-button" id="light-tree" type="button" aria-controls="exhibition">点亮这棵树</button>
+    </div>
+  </section>
+  <main id="exhibition" data-state="tree" hidden>
     <header><h1 lang="en">Merry Christmas</h1>
       <button type="button" id="cycle" aria-live="polite" aria-label="圣诞树，点击散开" title="点击切换形态">CHRISTMAS TREE</button>
     </header>
     <section class="gallery" aria-label="王家馨的粉色星尘圣诞树">
       <div class="backlight" aria-hidden="true"></div>
-      <canvas id="scene" tabindex="0" aria-label="点击或按空格，依次切换圣诞树、散开、圣诞祝福、王家馨。拖动旋转，长按拖动平移，滚轮或双指缩放。"></canvas>
+      <div class="wish-light" aria-hidden="true"></div>
+      <canvas id="scene" tabindex="0" aria-label="点击或按空格，依次切换圣诞树、散开、圣诞祝福、王家馨每天都要开心。拖动旋转，长按拖动平移，滚轮或双指缩放。"></canvas>
       <p id="failure" role="status" hidden></p>
     </section>
     <footer>
@@ -3934,7 +3985,7 @@ void main() {
   <script>(() => {
 'use strict';
 /* size 是球的直径或盒子的边长。四种形态复用同一批实例，所有坐标均为局部世界坐标。 */
-function makeOrnaments() {
+function makeOrnaments(treeOnly = false) {
   const pieces = [];
   const turn = 2 * Math.PI;
   const goldenAngle = Math.PI * (3 - Math.sqrt(5));
@@ -4019,6 +4070,8 @@ function makeOrnaments() {
     add([x, y, z], range(.023, .050), range(.83, 1));
   }
 
+  if (treeOnly) return pieces;
+
   // 三维散射用打乱次序的分层抽样，铺满整个视野，同时保留少量靠近镜头的实体。
   const count = pieces.length;
   const horizontal = shuffle(Array.from({ length: count }, (_, i) => i));
@@ -4048,11 +4101,11 @@ function makeOrnaments() {
   return pieces;
 }
 
-// “王家馨”三字已用 Noto Sans SC 450 字重栅格化。只存这幅字形图案的行程编码，不加载字体。
+// 姓名和祝福分两行，使用 Noto Sans SC 520 的字形行程编码，可离线还原。
 function sampleName(count, random) {
-  const width = 416;
-  const height = 119;
-  const data = atob('Ac0BBALKAQd0CgLHAQtzCgPFAQ1zCiEfA8UBDnIKIR8DxgENcgohHwPGAQ5xCiEfA8cBDVo4Ch8DxwEOWTgKHwQHZlsNWTgKHwUHZlsOWDgKCA0KBQdmXA1YOAoIDQoFB2YsbCk4CggNCgUHZixsKTgJCQ0KBQdmLGxACiAJDQoFB2YsbEAKHwkOCgUHZixsQAoeCg4KBQdmLGxACh0LDxcFB2YsbEAKGg0QGAUHZixsLTEDDxEYBTQLWmwsMgIPEhgFNAtabCwyAg4UFwY0C1oLVgssMgMMFhYGNAtaC1YLLDIEChkTBTQLWgtWCywyBAgFNAtaC1YLLDIFBQQ0C1oLVgtjKwQ0C1oLVgtkLQQ0C1oLVgtkLgQ0C1oLVgtkLQU0C1oLVgswBi4tBTQLWgtWCy4vBywFNAtaC1YLLi8HLAc0C1oLBkkHCy4vDAIaCgc0C1oLBkoGCy4vDAMZCgc0C1oLBkoGCy4vCwcVCgc0C1oLBkoGCy4vCgsRCgk0C1oLBkoGCy4JCggLCQkPDQoJNAtaCwZKBgsuCQoICwkIEgkLBzQLa0o/CQoICwkJFAULBzQLa0o/CQoICwkMEwEMBjQLa0o/CQoICwkPHAY0C2tKPwkKCAsJERkGNAuFAQ9gCQoICwkUFQY0C4QBD2AKCggLCRYTBDQLggEQYTAWFQQ0C4ABEWIwExoFNAt+ESUBPjAQHwU0C3wSJQM9MAwmBjQLehMlBTsxBxgDEgY0C3gWIwg5MQEcBxIGNAt2GSEKODEBGQwSBjQLcx0eDTYKKhUREgY0C3EfHQ81CisRFhEHDVtFIxsRMwsrDhEBCQ4IDFxCFwQMGRE0Ci0JDQoKCwgMXD8YBwwWEjQLLQQHFgsJBwxcPBkJDRQRNQsoKQsGBwxcOBsMDBMRNgsHSwwDBgxcNB0PDBERNgsITAYMXDEeEgwOETcMCE0GDFwyGxMNDRE2DQpIBgxcMhgVDwoSOAsLQQYMXDMVFREJETsKCzcGDFw0ERcTBxE9CAwqBjQLXQ4YFQURQQUsCwY0C14KGRgDEUMDLQsGNAtfBhoaARJFAS4LBDQLXwMbLnULBDQLexICHHULBDQLeRIEHHULBDQLdxIHHENtBDQLdRMIHENtBDQLchQKHUJtBTQLcBQNEAELQm0FNAttFQ8OBAtBbQU0C2sVEQwGC0FtBTQLaBYSDQcLQG0FNAtlFxMOBwtAbQc0C2IYFA8HDGENAgsCDQc0C14aFBEIC14PAwsDDgc0C1sbFRIIDFsQBAsEDwc0C1oaFRUIDFgQBgsGDwc0C1sWFxYIDFYQCAsHEAc0C1sUFxgJDFMRCQsJEQc0C1wRGBkJDU8SCwsLEgc0C10NGRsKDE0SDQsMEwg0C10LGREBCwsMSRQOCw4UCDQLXgcaEgILCw1FFRALEBYGNAteBBsSBAsMDUFcBTQLexMFCwwNPWQFNAt5EwcLDQ05bAU0C3cUCAsODTN1BTQLdRQKCw4OMHYFNAtzFAwLDw4wdAY0C3EVDQsQDjAfNh0INAtuFg8LEQ8vEAMLNgsCEAg0C2wWEQsSDy8MBgs2CwYLCDQLaRcTCxIQLgkJCzYLCQcHNAtnGBMMExEtBQxMDQMFNAtkGRUMFBE9TAU0C2EaFwsWEjtMBTQLXRwYDBcTOUwFAHQlHRoMGBQ3TAUAdCMcHA0ZFTVMBgB0IxodDRsUNQs2CwYAdCQXHg4cEjYLNgsGAHQlEyAOHw83CzYLBgB0JREgECANOAs2CwYAdCYNEyAiCzgLNgsFAHQnChYeJAk5TAUAdCcHGR0nBjpMBQB0KAMdGyoDO0wEAHNJGi0BO0wCvAEZakwCvAEYa0wDvQEWbAs1DAO9ARRuCzYLA70BEXELNgs=');
+  const width = 703;
+  const height = 277;
+  const data = atob('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');
   const mask = new Uint8Array(width * height);
   let offset = 0;
   let area = 0;
@@ -4088,7 +4141,7 @@ function sampleName(count, random) {
         const y = cy + (random() - .5) * pitch * .66;
         if (x < 0 || y < 0 || x >= width || y >= height) continue;
         if (mask[Math.floor(y) * width + Math.floor(x)]) {
-          marks.push({ x: (x - width / 2) * unit, y: (height / 2 - y) * 2.84 / height, pitch: pitch * unit });
+          marks.push({ x: (x - width / 2) * unit, y: (height / 2 - y) * unit, pitch: pitch * unit });
         }
       }
     }
@@ -4181,7 +4234,7 @@ function makeSculpture(scene,ornaments) {
   root.add(innerCanopy);
   const time={value:0};
   const diffusion={value:0}, pointer={value:new THREE.Vector2(8,8)};
-  const writingAmount={value:0}, treeAmount={value:1}, viewportHeight={value:600};
+  const writingAmount={value:0}, treeAmount={value:1}, wishAmount={value:0}, viewportHeight={value:600};
   // 散开后每粒都沿自己的缓慢曲线漂移。鼠标附近的细粒向外避让，再随指针离开回落。
   // 用顶点着色器完成微运动，避免每帧从 CPU 上传几千个矩阵。
   const driftShader=`uniform float glitterTime; uniform float diffusion; uniform vec2 pointerNdc;
@@ -4218,10 +4271,11 @@ function makeSculpture(scene,ornaments) {
       shader.uniforms.glitterTime=time;
       shader.uniforms.diffusion=diffusion;shader.uniforms.pointerNdc=pointer;
       shader.uniforms.treeAmount=treeAmount;
+      shader.uniforms.wishAmount=wishAmount;
       shader.vertexShader=driftShader+'\nattribute vec4 glint; varying vec4 vGlint;\n'+
         shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvGlint=glint;')
           .replace('#include <project_vertex>','#include <project_vertex>\nsuspendedDust(mvPosition,glint.x); gl_Position=projectionMatrix*mvPosition;');
-      shader.fragmentShader='varying vec4 vGlint; uniform float glitterTime; uniform float treeAmount;\n'+
+      shader.fragmentShader='varying vec4 vGlint; uniform float glitterTime; uniform float treeAmount, wishAmount;\n'+
         shader.fragmentShader.replace('#include <opaque_fragment>',`
           float pulse = pow(0.5+0.5*sin(glitterTime*(.77+.08*sin(vGlint.x))+vGlint.x),3.0);
           outgoingLight = outgoingLight*vGlint.y*(0.83 + 0.10*pulse)
@@ -4230,6 +4284,9 @@ function makeSculpture(scene,ornaments) {
           vec3 petalTint = mix(diffuseColor.rgb,vec3(1.,.41,.62),.66);
           vec3 litPetal = petalTint*(.14+.89*vGlint.w) + outgoingLight*.18;
           outgoingLight = mix(outgoingLight,litPetal,treeAmount);
+          vec3 softRose = mix(vec3(1.,.49,.64),vec3(1.,.70,.79),.28+.31*pulse);
+          float softFill = .184 + .057*smoothstep(.02,1.0,vGlint.y) + .022*pulse;
+          outgoingLight = mix(outgoingLight,softRose*softFill + outgoingLight*.095,wishAmount);
           #include <opaque_fragment>`);
     };
     const mesh=new THREE.InstancedMesh(geo,surface,selected.length);
@@ -4245,6 +4302,7 @@ function makeSculpture(scene,ornaments) {
       mesh.setColorAt(i,new THREE.Color(palette[Math.floor(random()*palette.length)]));
       o.current=o.tree.slice();o.start=o.tree.slice();o.diameter=o.fromSize=o.size;
       o.delay=.125*random();
+      o.entryDelay=.34*THREE.MathUtils.clamp((o.tree[1]+2.79)/6.13,0,1)+.22*o.delay;
       o.drift=random()*Math.PI*2;
       const nearLens=o.scatter[2]>4.38;
       o.scatterSize=o.size*(nearLens?1.6+random()*1.2:.57+random()*.43);
@@ -4259,10 +4317,10 @@ function makeSculpture(scene,ornaments) {
   const haloGeo=new THREE.PlaneGeometry(1,1);
   haloGeo.setAttribute('haloOptics',new THREE.InstancedBufferAttribute(new Float32Array(haloOptics),3));
   const haloMaterial=new THREE.ShaderMaterial({
-    uniforms:{glitterTime:time,diffusion,pointerNdc:pointer,writingAmount,treeAmount,viewportHeight},
+    uniforms:{glitterTime:time,diffusion,pointerNdc:pointer,writingAmount,treeAmount,wishAmount,viewportHeight},
     transparent:true,depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending,
     vertexShader:driftShader+`attribute vec3 haloOptics;
-      uniform float writingAmount; uniform float treeAmount; uniform float viewportHeight;
+      uniform float writingAmount,treeAmount,wishAmount,viewportHeight;
       varying vec2 coord; varying float radiance;
       void main(){
         coord=uv*2.-1.;
@@ -4275,20 +4333,20 @@ function makeSculpture(scene,ornaments) {
         center.z+=min(.048,size*.57);
         float clipW=(projectionMatrix*center).w;
         float unitsPerPixel=2.*max(0.,clipW)/(projectionMatrix[1][1]*viewportHeight);
-        float spread=mix(3.75,2.96,writingAmount)+treeAmount*(.57+.7*haloOptics.z);
-        float minimumPixels=mix(4.1,3.15,writingAmount)+treeAmount*.8;
+        float spread=mix(3.75,2.96,writingAmount)+treeAmount*(.57+.7*haloOptics.z)+.55*wishAmount;
+        float minimumPixels=mix(4.1,3.15,writingAmount)+treeAmount*.8+.47*wishAmount;
         float diameter=max(size*spread,unitsPerPixel*minimumPixels);
         center.xy+=position.xy*diameter;
         gl_Position=projectionMatrix*center;
       }`,
-    fragmentShader:`varying vec2 coord; varying float radiance; uniform float treeAmount;
+    fragmentShader:`varying vec2 coord; varying float radiance; uniform float treeAmount,wishAmount;
       void main(){
         float rr=dot(coord,coord);
         float core=exp(-9.0*rr);
         float veil=exp(-3.0*rr);
         float envelope=1.-smoothstep(.55,1.,rr);
         vec3 pink=mix(vec3(1.,.37,.65),vec3(1.,.61,.82),core);
-        float glow=(.14-.052*treeAmount)*core+(.080+.007*treeAmount)*veil;
+        float glow=(.14-.052*treeAmount-.055*wishAmount)*core+(.080+.007*treeAmount+.022*wishAmount)*veil;
         gl_FragColor=vec4(pink,glow*envelope*radiance);
       }`
   });
@@ -4301,21 +4359,24 @@ function makeSculpture(scene,ornaments) {
   function snapshot() {
     for(const o of ornaments){o.start=o.current.slice();o.fromSize=o.diameter;}
   }
-  function draw(state,t,textAmount,scatterScale=[1,1],treeGlow=Number(state==='tree')) {
+  function draw(state,t,{textAmount=0,scatterScale=[1,1],treeGlow=Number(state==='tree'),wishGlow=0,entering=false}={}) {
     const dispersing=state==='scatter', writing=state==='text'||state==='name';
     const sx=dispersing?scatterScale[0]:1, sy=dispersing?scatterScale[1]:state==='text'?.85:1;
     const smooth=v=>v*v*(3-2*v);
     writingAmount.value=textAmount;
     treeAmount.value=treeGlow;
+    wishAmount.value=wishGlow;
     for(const {mesh,selected,haloOffset} of batches){
       selected.forEach((o,i)=>{
-        const u=smooth(THREE.MathUtils.clamp((t-o.delay)/(1-o.delay),0,1));
+        // 开场从树底先聚合，树梢随后收拢。其他形态仍共用同一套过渡。
+        const delay=entering?o.entryDelay:o.delay;
+        const u=smooth(THREE.MathUtils.clamp((t-delay)/(entering?.63:1-delay),0,1));
         const arc=u===0||u===1?0:Math.sin(u*Math.PI);
         const dest=o[state];
         o.current[0]=THREE.MathUtils.lerp(o.start[0],dest[0]*sx,u)+arc*.40*Math.cos(o.drift);
         o.current[1]=THREE.MathUtils.lerp(o.start[1],dest[1]*sy+(writing?.18:0),u)+arc*.24*Math.sin(o.drift);
         o.current[2]=THREE.MathUtils.lerp(o.start[2],dest[2],u)+arc*.57;
-        const size=state==='name'?o.nameSize:state==='text'?o.textSize*1.1:dispersing?o.scatterSize:o.treeSize;
+        const size=state==='name'?o.nameSize*.94:state==='text'?o.textSize*1.1:dispersing?o.scatterSize:o.treeSize;
         o.diameter=THREE.MathUtils.lerp(o.fromSize,size,u);
         transform.position.fromArray(o.current);transform.rotation.set(...o.rotation);
         transform.scale.setScalar(o.diameter);transform.updateMatrix();mesh.setMatrixAt(i,transform.matrix);
@@ -4331,7 +4392,7 @@ function makeSculpture(scene,ornaments) {
     if(cursor.x>2 || pointer.value.x>2) pointer.value.copy(cursor);
     else pointer.value.lerp(cursor,1-Math.exp(-dt*11));
   }
-  draw('tree',1,0);
+  draw('tree',1);
   return {root,innerCanopy,draw,snapshot,shimmer,pickable:batches.map(b=>b.mesh)};
 }
 
@@ -4362,16 +4423,24 @@ function makeStarlight(scene,sculpture,ornaments) {
     positions.push(x+jitter()*spread,y+jitter()*spread*.69,z+jitter()*spread);
     style.push(range(2.9,7.25),range(.44,.86)*(.66+.32*ornament.treeGlow),range(0,6.28),2);
   }
+  // 树梢点亮后，沿两侧散开少量星屑，与天空共用同一批绘制。
+  for(let i=0;i<156;i++){
+    const angle=i*2.39996323;
+    const radius=range(.048,.19);
+    positions.push(Math.cos(angle)*radius,Math.sin(angle)*radius,i<82?-1:1);
+    style.push(range(1.7,4.7),range(.24,.72),range(0,6.28),3);
+  }
   const geometry=new THREE.BufferGeometry();
   geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
   geometry.setAttribute('pointStyle',new THREE.Float32BufferAttribute(style,4));
   const uniforms={
-    uTime:{value:0},treeGlow:{value:1},screenRatio:{value:1},treeTransform:{value:sculpture.matrix}
+    uTime:{value:0},treeGlow:{value:1},wishGlow:{value:0},openingSky:{value:1},burst:{value:1},
+    screenRatio:{value:1},treeTransform:{value:sculpture.matrix}
   };
   const material=new THREE.ShaderMaterial({
     uniforms,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
     vertexShader:`attribute vec4 pointStyle;
-      uniform float uTime,treeGlow,screenRatio;
+      uniform float uTime,treeGlow,wishGlow,openingSky,burst,screenRatio;
       uniform mat4 treeTransform;
       varying float vLayer,vIntensity;
       void main(){
@@ -4384,10 +4453,21 @@ function makeStarlight(scene,sculpture,ornaments) {
           vec2 sway=vec2(sin(uTime*.38+pointStyle.z),cos(uTime*.31+pointStyle.z))*vec2(.024,.017);
           vec2 skyPosition=mod(position.xy+flow+sway+1.12,2.24)-1.12;
           float visibleEdge=1.-smoothstep(.93,1.10,max(abs(skyPosition.x),abs(skyPosition.y)));
-          float treeSky=mix(.43,1.,treeGlow);
+          float treeSky=mix(.43,1.,treeGlow)*(1.-.77*wishGlow)*openingSky;
           gl_Position=vec4(skyPosition,0.999,1.);
           gl_PointSize=pointStyle.x*screenRatio;
           vIntensity=pointStyle.y*flicker*treeSky*visibleEdge;
+        } else if(vLayer>2.5){
+          float elapsed=clamp(burst*1.33-(position.z>0.? .31:0.),0.,1.);
+          float spread=1.-pow(1.-elapsed,2.15);
+          float axis=projectionMatrix[0][0]/projectionMatrix[1][1];
+          vec4 crown=projectionMatrix*modelViewMatrix*vec4(0.,2.95,0.,1.);
+          vec2 anchor=crown.xy/crown.w+vec2(position.z*.223*axis,position.z<0.? .072:-.15);
+          vec2 offset=position.xy*vec2(axis,1.)*spread;
+          offset.y-=.042*elapsed*elapsed;
+          gl_Position=vec4(anchor+offset,.99,1.);
+          gl_PointSize=pointStyle.x*screenRatio;
+          vIntensity=pointStyle.y*smoothstep(.015,.21,elapsed)*(1.-smoothstep(.42,1.,elapsed));
         } else {
           vec3 drift=vec3(.06*sin(uTime*.24+pointStyle.z),.055*cos(uTime*.34+pointStyle.z),0);
           vec4 local=vec4(position+drift,1.);
@@ -4415,9 +4495,12 @@ function makeStarlight(scene,sculpture,ornaments) {
   stars.renderOrder=1;
   stars.onBeforeRender=renderer=>{uniforms.screenRatio.value=renderer.getPixelRatio();};
   scene.add(stars);
-  return (seconds,treeGlow)=>{
+  return (seconds,treeGlow,{wishGlow=0,openingSky=1,burst=1}={})=>{
     uniforms.uTime.value=seconds;
     uniforms.treeGlow.value=treeGlow;
+    uniforms.wishGlow.value=wishGlow;
+    uniforms.openingSky.value=openingSky;
+    uniforms.burst.value=burst;
   };
 }
 
@@ -4603,21 +4686,102 @@ function initCarol(button) {
 }
 
 
-function openExhibition() {
+// 失焦光雾和点亮后的实体共用同一条螺旋。x、y 是屏幕比例，depth 用来恢复前后层次。
+function openingSpiral(t) {
+  const angle = (t * 4.6 - .23) * Math.PI * 2;
+  const radius = .23 + .83 * Math.pow(t,.94);
+  const front = Math.sin(angle);
+  return {
+    x:Math.cos(angle)*radius - .036*Math.sin(t*5),
+    y:.50 - 1.26*t + front*(.040+.089*t),
+    depth:11.1 - front*(.98+2.12*t),
+    front
+  };
+}
+
+function openingSpiralWidth(width,height) {
+  return Math.min(width,height*.72);
+}
+
+function makeOpeningCloud(ornaments) {
+  let seed=416105;
+  const random=()=>{
+    seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+    return seed/4294967296;
+  };
+  const jitter=()=>random()+random()-1;
+  const fromTop=ornaments.map((_,index)=>index).sort((a,b)=>ornaments[b].tree[1]-ornaments[a].tree[1]);
+  const cloud=new Array(ornaments.length);
+  fromTop.forEach((index,rank)=>{
+    const t=(rank+random())/ornaments.length;
+    const point=openingSpiral(t);
+    cloud[index]={
+      x:point.x+jitter()*(.075+.034*t),
+      y:point.y+jitter()*(.028+.024*t),
+      depth:point.depth+jitter()*.51
+    };
+  });
+  return cloud;
+}
+
+function mountOpeningArt(canvas) {
+  const context=canvas.getContext('2d');
+  if (!context) return {disconnect(){}};
+  const haze=document.createElement('canvas');
+  haze.width=haze.height=96;
+  const brush=haze.getContext('2d');
+  const gradient=brush.createRadialGradient(48,48,0,48,48,48);
+  gradient.addColorStop(0,'#bf7c9e9c');
+  gradient.addColorStop(.36,'#a7679054');
+  gradient.addColorStop(.71,'#75486621');
+  gradient.addColorStop(1,'#48304000');
+  brush.fillStyle=gradient;
+  brush.fillRect(0,0,haze.width,haze.height);
+
+  function paint() {
+    const {width,height}=canvas.getBoundingClientRect();
+    if (!width || !height) return;
+    const ratio=Math.min(devicePixelRatio || 1,2);
+    canvas.width=Math.ceil(width*ratio);
+    canvas.height=Math.ceil(height*ratio);
+    context.setTransform(ratio,0,0,ratio,0,0);
+    const span=openingSpiralWidth(width,height);
+    // 叠成一层连续的虚焦光带。只在载入和视口变动时重画。
+    for (let i=0;i<=190;i++) {
+      const t=i/190;
+      const {x,y,front}=openingSpiral(t);
+      const cx=width/2 + x*span/2, cy=(1-y)*height/2;
+      const size=span*(.086+.070*t);
+      const variation=.78+.14*Math.sin(i*.61)+.08*Math.sin(i*.24);
+      context.globalAlpha=(.046+.075*(front+1)/2)*variation*(1-.38*t);
+      context.drawImage(haze,cx-size*.66,cy-size*.44,size*1.32,size*.88);
+    }
+    context.globalAlpha=1;
+  }
+
+  const observer=new ResizeObserver(paint);
+  observer.observe(canvas);
+  paint();
+  return observer;
+}
+
+
+function openExhibition(cover, onEntered) {
   // 配置中心：初始相机距离和可视高度决定构图，动画时长为毫秒。
   const config = { frameHeight:7.45, scatterHeight:8.23, distance:11, turnSpeed:.105,
-    holdTime:350, dragDistance:6, duration:{tree:1540,scatter:1380,text:1610,name:1700} };
+    holdTime:350, dragDistance:6, entryDuration:3750,
+    duration:{tree:1540,scatter:1380,text:1610,name:1700} };
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const canvas = document.querySelector('#scene');
   const main = document.querySelector('main');
   const cycle = document.querySelector('#cycle');
-  const backlight = document.querySelector('.backlight');
   const states = ['tree','scatter','text','name'];
+  const finalWish = '王家馨每天都要开心';
   const labels = {
     tree:['CHRISTMAS TREE','圣诞树，点击散开'],
     scatter:['DIFFUSING…','星尘散开，点击拼出圣诞祝福'],
-    text:['MERRY CHRISTMAS','圣诞祝福，点击拼出王家馨'],
-    name:['王家馨','王家馨，点击回到圣诞树']
+    text:['MERRY CHRISTMAS',`圣诞祝福，点击拼出${finalWish}`],
+    name:[finalWish,`${finalWish}，点击回到圣诞树`]
   };
   const renderer = new THREE.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'high-performance'});
   renderer.setClearColor(0,0);
@@ -4643,7 +4807,10 @@ function openExhibition() {
   const sculpture = makeSculpture(scene,ornaments);
   const lightStars = makeStarlight(scene,sculpture.root,ornaments);
   let state = 'tree', animation = null, frameHeight = config.frameHeight, aspect = 1;
-  let amountText = 0, amountTree = 1, lastTime = 0;
+  let amountText = 0, amountTree = 1, amountWish = 0, lastTime = 0;
+  let revealWithoutMotion = reduced.matches;
+  let openingBurstStart = null;
+  const openingCloud = revealWithoutMotion ? null : makeOpeningCloud(ornaments);
   let pressed = null;
   const contacts = new Set();
   const goalHeight = () => {
@@ -4657,11 +4824,11 @@ function openExhibition() {
   let lightX,lightY;
   function aimBacklight() {
     camera.updateMatrixWorld();
-    lightAnchor.set(0,-.46,0).project(camera);
+    lightAnchor.set(0,state==='name'?.18:-.46,0).project(camera);
     const x=Math.round((lightAnchor.x+1)*500)/10;
     const y=Math.round((1-lightAnchor.y)*500)/10;
-    if(x!==lightX){backlight.style.setProperty('--light-x',x+'%');lightX=x;}
-    if(y!==lightY){backlight.style.setProperty('--light-y',y+'%');lightY=y;}
+    if(x!==lightX){main.style.setProperty('--light-x',x+'%');lightX=x;}
+    if(y!==lightY){main.style.setProperty('--light-y',y+'%');lightY=y;}
   }
   controls.addEventListener('change',aimBacklight);
   function project() {
@@ -4676,9 +4843,23 @@ function openExhibition() {
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1,1.7,Math.sqrt(2250000/Math.max(1,width*height))));
     renderer.setSize(Math.max(1,width),Math.max(1,height),false);
     frameHeight=goalHeight(); project();
-    if (animation) animation.height=frameHeight;
-    else if (state==='scatter') sculpture.draw('scatter',1,0,scatterScale());
+    if (animation?.entry) placeOpeningCloud();
+    else if (animation) animation.height=frameHeight;
+    else if (state==='scatter') sculpture.draw('scatter',1,{scatterScale:scatterScale()});
   }
+  function placeOpeningCloud() {
+    // 将幕布上的螺旋反投影到不同景深，实体直接接续光雾的位置。
+    const viewPoint = new THREE.Vector3();
+    const [projectionX, projectionY] = [camera.projectionMatrix.elements[0], camera.projectionMatrix.elements[5]];
+    const openingScale = openingSpiralWidth(aspect,1)/aspect;
+    ornaments.forEach((ornament,i)=>{
+      const {x,y,depth}=openingCloud[i];
+      viewPoint.set(x*openingScale*depth/projectionX,y*depth/projectionY,-depth).applyMatrix4(camera.matrixWorld);
+      ornament.start=viewPoint.toArray();
+      ornament.fromSize=ornament.size*(ornament.sparkle?.80:.44);
+    });
+  }
+  if (!revealWithoutMotion) animation={start:null,elapsed:0,duration:config.entryDuration,entry:true};
   new ResizeObserver(resize).observe(canvas.parentElement);
   resize();
   function choose(next) {
@@ -4686,13 +4867,15 @@ function openExhibition() {
     // 从当前屏幕上的实际位置出发，连续快速点击也能自然改变目的地。
     sculpture.snapshot();
     state=next;
+    openingBurstStart=null;
     animation={start:performance.now(),duration:reduced.matches?1:config.duration[state],
-      height:frameHeight,text:amountText,tree:amountTree,
+      height:frameHeight,text:amountText,tree:amountTree,wish:amountWish,
       orientation:sculpture.root.quaternion.clone(),
       goal: next==='tree' ? new THREE.Quaternion() : camera.quaternion.clone()};
     main.dataset.state=state;
     cycle.textContent=labels[state][0];
     cycle.setAttribute('aria-label',labels[state][1]);
+    aimBacklight();
   }
   function advance() { choose(states[(states.indexOf(state)+1)%states.length]); }
   cycle.addEventListener('click',advance);
@@ -4775,38 +4958,113 @@ function openExhibition() {
     if (hit || state!=='tree') advance();
   }
   for (const type of ['pointerup','pointercancel','lostpointercapture']) canvas.addEventListener(type,release,true);
+  function animateOpening(t,now) {
+    const {clamp,smoothstep}=THREE.MathUtils;
+    const gather=clamp((t-.39)/.61,0,1);
+    const lit=smoothstep(t,.015,.25);
+    const settled=smoothstep(gather,.32,1);
+    // 先显出螺旋并留一拍，再由树底向上聚合。
+    cover.style.setProperty('--opening-haze',1-smoothstep(t,.026,.19));
+    cover.style.setProperty('--opening-night',1-smoothstep(t,.025,.22));
+    const copy=1-smoothstep(t,.092,.26);
+    const lift=smoothstep(t,.28,.72);
+    const signing=smoothstep(t,.68,.80)*(1-smoothstep(t,.94,1));
+    const finalNameY=11.5-6.4*smoothstep(aspect,.48,.62);
+    cover.style.setProperty('--opening-copy',copy);
+    cover.style.setProperty('--opening-name-alpha',copy+signing);
+    cover.style.setProperty('--opening-name-y',`${41.7+(finalNameY-41.7)*lift}%`);
+    cover.style.setProperty('--opening-name-scale',1-.32*lift);
+    main.style.setProperty('--entry-blur',`${5.4*(1-lit)}px`);
+    main.style.setProperty('--entry-glow',(.76+.14*settled)*lit);
+    main.style.setProperty('--entry-backlight',.15*lit+.85*settled);
+    if(t>=.89 && openingBurstStart===null) openingBurstStart=now;
+    amountTree=.51+.49*smoothstep(gather,.17,.83);
+    sculpture.draw('tree',gather,{treeGlow:amountTree,entering:true});
+    sculpture.root.rotation.y=.12*Math.sin(Math.PI*smoothstep(t,.19,.91));
+    return settled;
+  }
   function frame(now) {
     const dt=Math.min(.065,Math.max(0,(now-(lastTime || now))/1000)); lastTime=now;
     controls.update(dt);
+    let finishedEntry=false;
+    let openingStars;
     if (animation) {
-      const t=THREE.MathUtils.clamp((now-animation.start)/animation.duration,0,1);
-      const f=t*t*(3-2*t);
-      amountText=THREE.MathUtils.lerp(animation.text,Number(state==='text'||state==='name'),f);
-      amountTree=THREE.MathUtils.lerp(animation.tree,Number(state==='tree'),f);
-      sculpture.draw(state,t,amountText,scatterScale(),amountTree);
-      sculpture.root.quaternion.slerpQuaternions(animation.orientation,animation.goal,f);
-      frameHeight=THREE.MathUtils.lerp(animation.height,goalHeight(),f); project();
-      if(t===1) animation=null;
+      let elapsed=now-(animation.start??now);
+      if(animation.entry){
+        // 着色器或慢设备卡一帧时，避免直接跳过虚焦和点亮的关键画面。
+        const maxStep=animation.elapsed<animation.duration*.26?220:440;
+        animation.elapsed+=THREE.MathUtils.clamp(elapsed,0,maxStep);
+        elapsed=animation.elapsed;
+        if (animation.start!==null) animation.start=now;
+      }
+      const t=THREE.MathUtils.clamp(elapsed/animation.duration,0,1);
+      if (animation.entry) {
+        openingStars=animateOpening(t,now);
+      } else {
+        const f=t*t*(3-2*t);
+        amountText=THREE.MathUtils.lerp(animation.text,Number(state==='text'||state==='name'),f);
+        amountTree=THREE.MathUtils.lerp(animation.tree,Number(state==='tree'),f);
+        amountWish=THREE.MathUtils.lerp(animation.wish,Number(state==='name'),f);
+        sculpture.draw(state,t,{textAmount:amountText,scatterScale:scatterScale(),treeGlow:amountTree,wishGlow:amountWish});
+        sculpture.root.quaternion.slerpQuaternions(animation.orientation,animation.goal,f);
+        frameHeight=THREE.MathUtils.lerp(animation.height,goalHeight(),f); project();
+      }
+      if (t===1) {
+        finishedEntry=animation.entry;
+        animation=null;
+      }
     } else if (state==='tree' && !reduced.matches && contacts.size===0) {
       sculpture.root.rotateY(dt*config.turnSpeed);
     } else if (state==='scatter' && !reduced.matches && contacts.size===0) {
       sculpture.root.rotateY(dt*.027);
     }
     sculpture.shimmer(now*.001,reduced.matches,state==='scatter',cursor,dt);
-    lightStars(reduced.matches?2.25:now*.001,amountTree);
+    const burst=openingBurstStart===null?1:Math.min((now-openingBurstStart)/1540,1);
+    lightStars(reduced.matches?2.25:now*.001,openingStars??amountTree,{wishGlow:amountWish,openingSky:openingStars??1,burst});
     renderer.render(scene,camera);
+    // 着色器首次编译可能耗时，聚拢从第一帧画完后计时。
+    if (animation?.start===null) animation.start=performance.now();
+    if (finishedEntry || revealWithoutMotion) {
+      revealWithoutMotion=false;
+      onEntered();
+    }
   }
   renderer.setAnimationLoop(frame);
 }
 
-try { openExhibition(); }
-catch(error) {
-  const failure=document.querySelector('#failure');
-  failure.hidden=false;
-  failure.textContent='无法启动 3D 场景。请在 Chrome 或 Edge 中启用图形加速，并重新打开。';
-  console.error(error);
+const opening = document.querySelector('#opening');
+const exhibition = document.querySelector('#exhibition');
+const openingArt = mountOpeningArt(opening.querySelector('canvas'));
+
+function finishOpening() {
+  opening.remove();
+  delete exhibition.dataset.entry;
+  for (const property of ['--entry-blur','--entry-backlight','--entry-glow']) exhibition.style.removeProperty(property);
+  exhibition.inert=false;
 }
-initCarol(document.querySelector('#sound'));
+
+// 在用户真实点击里启动音乐，留住浏览器给这次手势的播放许可。
+opening.addEventListener('click', () => {
+  openingArt.disconnect();
+  opening.dataset.leaving='';
+  opening.inert=true;
+  exhibition.dataset.entry='gathering';
+  exhibition.inert=true;
+  exhibition.hidden = false;
+  initCarol(document.querySelector('#sound'));
+  try {
+    openExhibition(opening,()=>{
+      finishOpening();
+      document.querySelector('#scene').focus({preventScroll:true});
+    });
+  } catch(error) {
+    finishOpening();
+    const failure=document.querySelector('#failure');
+    failure.hidden=false;
+    failure.textContent='无法启动 3D 场景。请在 Chrome 或 Edge 中启用图形加速，并重新打开。';
+    console.error(error);
+  }
+}, {once:true});
 
 })();</script>
 </body>
